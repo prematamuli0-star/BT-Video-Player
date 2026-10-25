@@ -1,7 +1,12 @@
+
 name: Build BT Video Player APK
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'BT-Video-Player-Android-Project.zip'
+      - '.github/workflows/build-apk.yml'
 
 permissions:
   contents: read
@@ -14,20 +19,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Extract Android project ZIP
+        run: |
+          mkdir android-project
+          unzip -o BT-Video-Player-Android-Project.zip -d android-project
 
-      - name: Build debug APK
+      - name: Add required AppCompat dependency
+        run: |
+          python3 -c "from pathlib import Path; p=Path('android-project/app/build.gradle.kts'); s=p.read_text(); s=s.replace('dependencies {', 'dependencies {\n    implementation(\"androidx.appcompat:appcompat:1.7.0\")', 1); p.write_text(s)"
+
+      - name: Build APK
+        working-directory: android-project
         run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BT-Video-Player-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: android-project/app/build/outputs/apk/debug/*.apk
