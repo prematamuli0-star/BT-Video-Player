@@ -42,7 +42,7 @@ jobs:
       - name: Build debug APK
         run: |
           cd "$PROJECT_DIR"
-          gradle --no-daemon assembleDebug
+          gradle --no-daemon assembleDebug --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
